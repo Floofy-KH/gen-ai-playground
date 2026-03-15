@@ -64,11 +64,11 @@ class LoRATrainingConfig:
         resume_from_checkpoint: Path to resume training from a checkpoint.
     """
 
-    base_model_id: str = "runwayml/stable-diffusion-v1-5"
+    base_model_id: str = "stabilityai/stable-diffusion-xl-base-1.0"
     instance_data_dir: str = "data/instance_images"
     output_dir: str = "outputs/lora"
     instance_prompt: str = "a photo of sks subject"
-    resolution: int = 512
+    resolution: int = 1024   # SDXL native resolution; use 512 for SD 1.5
     train_batch_size: int = 1
     num_train_epochs: int = 100
     learning_rate: float = 1e-4
@@ -138,11 +138,11 @@ def parse_args() -> LoRATrainingConfig:
     parser = argparse.ArgumentParser(
         description="Fine-tune a LoRA adapter on Stable Diffusion."
     )
-    parser.add_argument("--base_model_id", type=str, default="runwayml/stable-diffusion-v1-5")
+    parser.add_argument("--base_model_id", type=str, default="stabilityai/stable-diffusion-xl-base-1.0")
     parser.add_argument("--instance_data_dir", type=str, required=True)
     parser.add_argument("--output_dir", type=str, default="outputs/lora")
     parser.add_argument("--instance_prompt", type=str, required=True)
-    parser.add_argument("--resolution", type=int, default=512)
+    parser.add_argument("--resolution", type=int, default=1024)
     parser.add_argument("--train_batch_size", type=int, default=1)
     parser.add_argument("--num_train_epochs", type=int, default=100)
     parser.add_argument("--learning_rate", type=float, default=1e-4)

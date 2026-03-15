@@ -23,28 +23,43 @@
 # ---------------------------------------------------------------------------
 
 quality_tags:
+  illustration:
+    - "masterpiece"
+    - "best quality"
+    - "highly detailed"
+    - "sharp focus"
+    - "illustration"
+  anime:
+    - "masterpiece"
+    - "best quality"
+    - "highly detailed"
+    - "anime style"
+    - "vibrant colors"
+  concept_art:
+    - "concept art"
+    - "artstation"
+    - "trending on artstation"
+    - "professional illustration"
+    - "detailed"
+  painterly:
+    - "oil painting"
+    - "artstation"
+    - "trending"
+    - "detailed brushwork"
+  # Kept as reference for the rare photorealistic use-case:
   photorealistic:
     - "photorealistic"
     - "8k uhd"
     - "detailed"
     - "sharp focus"
     - "cinematic lighting"
-  anime:
-    - "masterpiece"
-    - "best quality"
-    - "highly detailed"
-    - "1girl"
-  painterly:
-    - "oil painting"
-    - "artstation"
-    - "trending"
-    - "detailed brushwork"
 
 # ---------------------------------------------------------------------------
 # Global negative prompt
 # ---------------------------------------------------------------------------
 
 global_negative_prompt: >
+  photorealistic, realistic, photograph, 3D render, CGI,
   blurry, low quality, low resolution, jpeg artefacts, deformed, ugly,
   extra limbs, missing limbs, bad anatomy, text, watermark, signature,
   cropped, out of frame, duplicate, worst quality
@@ -59,12 +74,12 @@ templates:
   # Use this when generating multiple scenes featuring the same character.
   # Fill {action} and {setting} per generation; keep anchor fixed.
   character_scene:
-    anchor: "sks person, photorealistic portrait"
-    template: "{anchor}, {action}, {setting}, dramatic lighting, ultra-detailed"
-    negative_prompt: "blurry, deformed, extra limbs, bad anatomy, watermark"
+    anchor: "sks character, anime style, 1girl, blue eyes, long silver hair"
+    template: "{anchor}, {action}, {setting}, dramatic lighting, masterpiece"
+    negative_prompt: "photorealistic, realistic, blurry, deformed, extra limbs, bad anatomy, watermark"
     quality_tags:
-      - "8k uhd"
-      - "sharp focus"
+      - "best quality"
+      - "highly detailed"
 
   # ── Style consistency template ───────────────────────────────────────────
   # Use this when generating multiple images in the same artistic style.
@@ -75,25 +90,26 @@ templates:
     quality_tags:
       - "artstation"
       - "highly detailed"
+      - "illustration"
+
+  # ── Concept art / environment template ──────────────────────────────────
+  environment:
+    anchor: "fantasy {biome}, concept art"
+    template: "{anchor}, {time_of_day}, {weather}, epic vista, digital painting"
+    negative_prompt: "photorealistic, people, characters, text, watermark"
+    quality_tags:
+      - "artstation"
+      - "trending on artstation"
+      - "highly detailed"
 
   # ── Product / object consistency template ───────────────────────────────
   product_shot:
-    anchor: "sks product, studio lighting, white background"
-    template: "{anchor}, {action}, product photography"
-    negative_prompt: "cluttered, busy background, shadow artefacts"
+    anchor: "sks object, illustrated style, clean background"
+    template: "{anchor}, {action}, product illustration"
+    negative_prompt: "photorealistic, photograph, cluttered, busy background"
     quality_tags:
-      - "8k"
-      - "commercial photography"
-
-  # ── Landscape / environment template ────────────────────────────────────
-  environment:
-    anchor: "fantasy landscape, {biome}"
-    template: "{anchor}, {time_of_day}, {weather}, epic vista, matte painting"
-    negative_prompt: "people, characters, text, watermark"
-    quality_tags:
-      - "artstation"
-      - "4k"
-      - "cinematic"
+      - "masterpiece"
+      - "best quality"
 
 # ---------------------------------------------------------------------------
 # Example anchor strings
@@ -102,7 +118,8 @@ templates:
 # directly in build_anchored_prompt() calls.
 
 anchors:
-  astronaut: "sks astronaut, white space suit, visor, NASA logo"
-  fantasy_warrior: "sks warrior, plate armour, magical sword, glowing runes"
-  anime_character: "sks character, 1girl, blue eyes, long silver hair, school uniform"
-  robot: "sks robot, sleek metallic body, glowing blue eyes, humanoid"
+  fantasy_warrior: "sks warrior, plate armour, magical sword, glowing runes, anime style"
+  anime_character: "sks character, 1girl, blue eyes, long silver hair, school uniform, anime style"
+  robot: "sks robot, sleek metallic body, glowing blue eyes, humanoid, concept art style"
+  wizard: "sks wizard, dark robes, glowing staff, arcane symbols, fantasy illustration"
+  dragon: "sks dragon, scales, wings spread, fantasy illustration, artstation"

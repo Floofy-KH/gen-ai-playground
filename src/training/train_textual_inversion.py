@@ -65,14 +65,14 @@ class TextualInversionTrainingConfig:
         save_steps: Save the embedding every N steps.
     """
 
-    base_model_id: str = "runwayml/stable-diffusion-v1-5"
+    base_model_id: str = "stabilityai/stable-diffusion-xl-base-1.0"
     train_data_dir: str = "data/concept_images"
     output_dir: str = "outputs/textual_inversion"
     placeholder_token: str = "<my-concept>"
     initializer_token: str = "object"
     learnable_property: str = "object"  # "object" or "style"
     num_vectors: int = 1
-    resolution: int = 512
+    resolution: int = 1024   # SDXL native resolution; use 512 for SD 1.5
     train_batch_size: int = 1
     max_train_steps: int = 3000
     learning_rate: float = 5e-4

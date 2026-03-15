@@ -67,7 +67,7 @@ class DreamBoothTrainingConfig:
         checkpointing_steps: Save an intermediate checkpoint every N steps.
     """
 
-    base_model_id: str = "runwayml/stable-diffusion-v1-5"
+    base_model_id: str = "stabilityai/stable-diffusion-xl-base-1.0"
     instance_data_dir: str = "data/instance_images"
     class_data_dir: str = "data/class_images"
     output_dir: str = "outputs/dreambooth"
@@ -76,7 +76,7 @@ class DreamBoothTrainingConfig:
     with_prior_preservation: bool = True
     prior_loss_weight: float = 1.0
     num_class_images: int = 200
-    resolution: int = 512
+    resolution: int = 1024   # SDXL native resolution; use 512 for SD 1.5
     train_batch_size: int = 1
     num_train_epochs: int = 4
     learning_rate: float = 5e-6
@@ -178,7 +178,7 @@ def parse_args() -> DreamBoothTrainingConfig:
     parser = argparse.ArgumentParser(
         description="Fine-tune a Stable Diffusion model with DreamBooth."
     )
-    parser.add_argument("--base_model_id", type=str, default="runwayml/stable-diffusion-v1-5")
+    parser.add_argument("--base_model_id", type=str, default="stabilityai/stable-diffusion-xl-base-1.0")
     parser.add_argument("--instance_data_dir", type=str, required=True)
     parser.add_argument("--class_data_dir", type=str, default="data/class_images")
     parser.add_argument("--output_dir", type=str, default="outputs/dreambooth")
@@ -195,7 +195,7 @@ def parse_args() -> DreamBoothTrainingConfig:
     )
     parser.add_argument("--prior_loss_weight", type=float, default=1.0)
     parser.add_argument("--num_class_images", type=int, default=200)
-    parser.add_argument("--resolution", type=int, default=512)
+    parser.add_argument("--resolution", type=int, default=1024)
     parser.add_argument("--train_batch_size", type=int, default=1)
     parser.add_argument("--num_train_epochs", type=int, default=4)
     parser.add_argument("--learning_rate", type=float, default=5e-6)

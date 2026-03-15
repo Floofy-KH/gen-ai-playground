@@ -10,12 +10,13 @@
 # ---------------------------------------------------------------------------
 
 base_model:
-  # Stable Diffusion 1.5 — good default for quick experiments on ≥4 GB VRAM
-  model_id: "runwayml/stable-diffusion-v1-5"
+  # SDXL — native 1024 px, excellent for illustrated / anime / concept-art styles
+  model_id: "stabilityai/stable-diffusion-xl-base-1.0"
   # Alternatives:
-  #   "stabilityai/stable-diffusion-2-1"     (SD 2.1, 768px native)
-  #   "stabilityai/stable-diffusion-xl-base-1.0"  (SDXL, needs ≥8 GB VRAM)
-  #   "black-forest-labs/FLUX.1-dev"         (FLUX, high prompt adherence)
+  #   "cagliostrolab/animagine-xl-3.1"       (anime-focused SDXL fine-tune)
+  #   "RunDiffusion/Juggernaut-XL-v9"        (versatile illustration model)
+  #   "black-forest-labs/FLUX.1-dev"         (FLUX, strong prompt adherence)
+  #   "runwayml/stable-diffusion-v1-5"       (SD 1.5, ≥4 GB VRAM, smaller imgs)
 
   device: "cuda"          # "cuda" | "cpu" | "mps" (Apple Silicon)
   dtype: "float16"        # "float32" | "float16" | "bfloat16"
@@ -27,26 +28,27 @@ base_model:
 
 generation:
   num_inference_steps: 30
-  guidance_scale: 7.5
-  width: 512
-  height: 512
-  # Negative prompt applied globally unless overridden per run
+  guidance_scale: 7.0     # SDXL works well at 6–8; lower than SD 1.5 norm
+  width: 1024             # SDXL native resolution
+  height: 1024
+  # Illustrated / anime negative prompt — suppresses photorealistic artefacts
   negative_prompt: >
+    photorealistic, realistic, photograph, 3D render, CGI,
     blurry, low quality, jpeg artefacts, deformed, extra limbs,
-    bad anatomy, watermark, signature, cropped
+    bad anatomy, watermark, signature, cropped, worst quality
 
 # ---------------------------------------------------------------------------
 # IP-Adapter settings
 # ---------------------------------------------------------------------------
 
 ip_adapter:
+  # SDXL IP-Adapter weights
   model_id: "h94/IP-Adapter"
-  subfolder: "models"
-  weight_name: "ip-adapter_sd15.bin"
-  # For SDXL, use:
-  #   model_id: "h94/IP-Adapter"
-  #   subfolder: "sdxl_models"
-  #   weight_name: "ip-adapter_sdxl.bin"
+  subfolder: "sdxl_models"
+  weight_name: "ip-adapter_sdxl.bin"
+  # For SD 1.5, use:
+  #   subfolder: "models"
+  #   weight_name: "ip-adapter_sd15.bin"
   default_scale: 0.6      # 0 = ignore reference, 1 = fully follow reference
 
 # ---------------------------------------------------------------------------
@@ -54,12 +56,17 @@ ip_adapter:
 # ---------------------------------------------------------------------------
 
 controlnet:
-  # Maps condition type to Hub model ID
+  # SDXL ControlNet models
   models:
-    canny:   "lllyasviel/sd-controlnet-canny"
-    depth:   "lllyasviel/sd-controlnet-depth"
-    pose:    "lllyasviel/sd-controlnet-openpose"
-    scribble: "lllyasviel/sd-controlnet-scribble"
+    canny:   "diffusers/controlnet-canny-sdxl-1.0"
+    depth:   "diffusers/controlnet-depth-sdxl-1.0"
+    pose:    "thibaud/controlnet-openpose-sdxl-1.0"
+    scribble: "xinsir/controlnet-scribble-sdxl-1.0"
+  # SD 1.5 alternatives (swap in if using an SD 1.5 base model):
+  #   canny:   "lllyasviel/sd-controlnet-canny"
+  #   depth:   "lllyasviel/sd-controlnet-depth"
+  #   pose:    "lllyasviel/sd-controlnet-openpose"
+  #   scribble: "lllyasviel/sd-controlnet-scribble"
   default_type: "canny"
   default_conditioning_scale: 1.0
 

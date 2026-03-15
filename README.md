@@ -11,9 +11,10 @@
 2. [Consistency Techniques](#consistency-techniques)
 3. [Repository Structure](#repository-structure)
 4. [Getting Started](#getting-started)
-5. [Usage Examples](#usage-examples)
-6. [Further Reading & Resources](#further-reading--resources)
-7. [Contributing](#contributing)
+5. [Running Tests](#running-tests)
+6. [Usage Examples](#usage-examples)
+7. [Further Reading & Resources](#further-reading--resources)
+8. [Contributing](#contributing)
 
 ---
 
@@ -21,12 +22,18 @@
 
 The goal of this playground is to explore and experiment with techniques that produce **consistent** image outputs from generative AI models — meaning the same character, style, scene, or aesthetic is preserved across multiple generations.
 
+The focus is on **illustrated and anime styles** (concept art, fantasy illustration, manga-inspired visuals). Photorealistic generation is out of scope; prompts, templates, and model defaults throughout this repo reflect the illustrated-first approach.
+
 This matters for:
 - Storyboarding and concept art (same character across scenes)
+- Illustrated character sheets and multi-panel comics
 - Brand/style consistency in AI-assisted design
-- Multi-panel illustrations and comics
 - Research into controllability of diffusion models
 
+> **Default model:** `stabilityai/stable-diffusion-xl-base-1.0` (SDXL). Community fine-tunes
+> such as [Animagine XL](https://huggingface.co/cagliostrolab/animagine-xl-3.1) can be swapped in
+> via `configs/model_config.yaml` for stronger anime-style results.
+>
 > **Note:** Video generation support is planned for a future phase. All current tooling is focused exclusively on image generation.
 
 ---
@@ -118,6 +125,13 @@ gen-ai-playground/
 │       ├── clip_blip_scoring.py        # CLIP/BLIP embedding similarity scoring
 │       └── latent_utils.py             # Shared latent space utilities
 │
+├── tests/                              # Pytest test suite (no GPU required)
+│   ├── test_seed_utils.py
+│   ├── test_prompt_helpers.py
+│   ├── test_consistency_scoring.py
+│   ├── test_lora_pipeline.py
+│   └── test_dreambooth_pipeline.py
+│
 ├── configs/
 │   ├── model_config.yaml               # Example model and pipeline configurations
 │   └── prompt_templates.yaml           # Reusable prompt templates and anchor patterns
@@ -125,6 +139,7 @@ gen-ai-playground/
 ├── assets/
 │   └── README.md                       # Instructions for adding reference/output images
 │
+├── pyproject.toml                      # Project metadata + uv / pytest / ruff config
 ├── requirements.txt                    # Core Python dependencies
 └── README.md                           # This file
 ```
@@ -136,10 +151,33 @@ gen-ai-playground/
 ### Prerequisites
 
 - Python 3.10 or higher
-- A CUDA-capable GPU is strongly recommended (8 GB+ VRAM for SDXL, 4 GB+ for SD 1.5)
+- A CUDA-capable GPU is strongly recommended (≥8 GB VRAM for SDXL, ≥4 GB for SD 1.5)
 - [Git](https://git-scm.com/)
+- [uv](https://docs.astral.sh/uv/) (**recommended** — fast Python package manager)
 
-### Installation
+### Installation with `uv` (recommended)
+
+[`uv`](https://docs.astral.sh/uv/) is a modern, ultra-fast Python package and environment manager.
+Install it once, then use it everywhere instead of pip/venv.
+
+```bash
+# Install uv (one-time)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 1. Clone the repository
+git clone https://github.com/Floofy-KH/gen-ai-playground.git
+cd gen-ai-playground
+
+# 2. Create a virtual environment and install all dependencies
+uv venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+uv pip install -r requirements.txt
+
+# 3. (Optional) Install dev tools (pytest, ruff, black)
+uv pip install -e ".[dev]"
+```
+
+### Installation with pip (alternative)
 
 ```bash
 # 1. Clone the repository
@@ -168,6 +206,20 @@ Open any notebook from the `notebooks/` directory to get started.
 
 ---
 
+## Running Tests
+
+The test suite covers pure-Python utilities (no GPU or model weights required).
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage report
+pytest --cov=src --cov-report=term-missing
+```
+
+---
+
 ## Usage Examples
 
 ### Basic Image Generation (Python)
@@ -175,11 +227,15 @@ Open any notebook from the `notebooks/` directory to get started.
 ```python
 from src.image.pipeline import ImageGenerationPipeline
 
-pipeline = ImageGenerationPipeline(model_id="runwayml/stable-diffusion-v1-5")
+# SDXL — native 1024 px, great for illustrated and anime styles
+pipeline = ImageGenerationPipeline(model_id="stabilityai/stable-diffusion-xl-base-1.0")
 image = pipeline.generate(
-    prompt="a portrait of an astronaut on the moon, photorealistic",
+    prompt="sks character, 1girl, blue eyes, long silver hair, standing in a fantasy forest, anime style, masterpiece, best quality",
+    negative_prompt="photorealistic, realistic, blurry, deformed, extra limbs",
     seed=42,
     num_inference_steps=30,
+    width=1024,
+    height=1024,
 )
 image.save("output.png")
 ```
@@ -191,12 +247,12 @@ from PIL import Image
 from src.image.ip_adapter import IPAdapterPipeline
 
 pipeline = IPAdapterPipeline(
-    base_model_id="runwayml/stable-diffusion-v1-5",
+    base_model_id="stabilityai/stable-diffusion-xl-base-1.0",
     ip_adapter_model_id="h94/IP-Adapter",
 )
 reference_image = Image.open("assets/reference.png")
 image = pipeline.generate(
-    prompt="a portrait in a forest, painterly style",
+    prompt="sks character in a cyberpunk city, anime style, neon lights, masterpiece",
     reference_image=reference_image,
     ip_adapter_scale=0.6,
     seed=42,
@@ -220,11 +276,11 @@ print(f"CLIP similarity: {score:.4f}")  # 1.0 = identical embeddings
 from src.utils.seed_utils import generate_with_locked_seed
 from src.image.pipeline import ImageGenerationPipeline
 
-pipeline = ImageGenerationPipeline(model_id="runwayml/stable-diffusion-v1-5")
+pipeline = ImageGenerationPipeline(model_id="stabilityai/stable-diffusion-xl-base-1.0")
 prompts = [
-    "sks astronaut standing on the moon, dramatic lighting",
-    "sks astronaut floating in space, cinematic",
-    "sks astronaut planting a flag, golden hour",
+    "sks warrior standing on a mountain peak, fantasy illustration, masterpiece",
+    "sks warrior in a dark dungeon, dramatic lighting, anime style, best quality",
+    "sks warrior at the edge of a glowing portal, concept art, artstation",
 ]
 images = generate_with_locked_seed(pipeline, prompts, seed=42)
 ```

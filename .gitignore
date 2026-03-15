@@ -16,6 +16,14 @@ venv/
 env/
 .env
 
+# uv
+uv.lock
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 */.ipynb_checkpoints/
