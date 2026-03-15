@@ -1,0 +1,101 @@
+# configs/model_config.yaml
+#
+# Example model and pipeline configurations for the generative AI playground.
+#
+# Copy this file and adjust values to suit your hardware and desired models.
+# All Hub model IDs can be swapped for local paths.
+
+# ---------------------------------------------------------------------------
+# Base model settings
+# ---------------------------------------------------------------------------
+
+base_model:
+  # Stable Diffusion 1.5 — good default for quick experiments on ≥4 GB VRAM
+  model_id: "runwayml/stable-diffusion-v1-5"
+  # Alternatives:
+  #   "stabilityai/stable-diffusion-2-1"     (SD 2.1, 768px native)
+  #   "stabilityai/stable-diffusion-xl-base-1.0"  (SDXL, needs ≥8 GB VRAM)
+  #   "black-forest-labs/FLUX.1-dev"         (FLUX, high prompt adherence)
+
+  device: "cuda"          # "cuda" | "cpu" | "mps" (Apple Silicon)
+  dtype: "float16"        # "float32" | "float16" | "bfloat16"
+  variant: "fp16"         # Set to null for full-precision models
+
+# ---------------------------------------------------------------------------
+# Generation defaults
+# ---------------------------------------------------------------------------
+
+generation:
+  num_inference_steps: 30
+  guidance_scale: 7.5
+  width: 512
+  height: 512
+  # Negative prompt applied globally unless overridden per run
+  negative_prompt: >
+    blurry, low quality, jpeg artefacts, deformed, extra limbs,
+    bad anatomy, watermark, signature, cropped
+
+# ---------------------------------------------------------------------------
+# IP-Adapter settings
+# ---------------------------------------------------------------------------
+
+ip_adapter:
+  model_id: "h94/IP-Adapter"
+  subfolder: "models"
+  weight_name: "ip-adapter_sd15.bin"
+  # For SDXL, use:
+  #   model_id: "h94/IP-Adapter"
+  #   subfolder: "sdxl_models"
+  #   weight_name: "ip-adapter_sdxl.bin"
+  default_scale: 0.6      # 0 = ignore reference, 1 = fully follow reference
+
+# ---------------------------------------------------------------------------
+# ControlNet settings
+# ---------------------------------------------------------------------------
+
+controlnet:
+  # Maps condition type to Hub model ID
+  models:
+    canny:   "lllyasviel/sd-controlnet-canny"
+    depth:   "lllyasviel/sd-controlnet-depth"
+    pose:    "lllyasviel/sd-controlnet-openpose"
+    scribble: "lllyasviel/sd-controlnet-scribble"
+  default_type: "canny"
+  default_conditioning_scale: 1.0
+
+# ---------------------------------------------------------------------------
+# Reference-only sampling settings
+# ---------------------------------------------------------------------------
+
+reference_only:
+  attention_auto_machine_weight: 1.0
+  gn_auto_machine_weight: 1.0
+  style_fidelity: 0.5     # 0 = prompt-driven, 1 = reference style-driven
+
+# ---------------------------------------------------------------------------
+# Scheduler / sampler settings
+# ---------------------------------------------------------------------------
+
+scheduler:
+  # Scheduler class name from diffusers
+  # Options: DDIMScheduler | PNDMScheduler | EulerDiscreteScheduler |
+  #          DPMSolverMultistepScheduler | UniPCMultistepScheduler
+  type: "DPMSolverMultistepScheduler"
+  # DPM-Solver++ gives good results in 20-25 steps
+  num_inference_steps: 25
+
+# ---------------------------------------------------------------------------
+# VAE settings
+# ---------------------------------------------------------------------------
+
+vae:
+  # Use a standalone improved VAE for better colour accuracy (optional)
+  # model_id: "stabilityai/sd-vae-ft-mse"
+  model_id: null  # null = use the VAE bundled with the base model
+
+# ---------------------------------------------------------------------------
+# Safety / content filtering
+# ---------------------------------------------------------------------------
+
+safety_checker:
+  enabled: false   # Disable for research; re-enable for public-facing demos

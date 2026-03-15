@@ -1,0 +1,108 @@
+# configs/prompt_templates.yaml
+#
+# Reusable prompt templates and anchor patterns.
+#
+# Templates use Python str.format()-style {slot} placeholders.
+# The {anchor} slot is always populated from the "anchor" field of the same
+# template block (or passed explicitly at runtime).
+#
+# Usage (Python):
+#
+#   from src.utils.prompt_helpers import PromptTemplate
+#   import yaml
+#
+#   with open("configs/prompt_templates.yaml") as f:
+#       cfg = yaml.safe_load(f)
+#
+#   t_cfg = cfg["templates"]["character_scene"]
+#   template = PromptTemplate(**t_cfg)
+#   prompt = template.build(action="exploring a cave", setting="underground grotto")
+
+# ---------------------------------------------------------------------------
+# Quality booster tags (appended to every prompt by convention)
+# ---------------------------------------------------------------------------
+
+quality_tags:
+  photorealistic:
+    - "photorealistic"
+    - "8k uhd"
+    - "detailed"
+    - "sharp focus"
+    - "cinematic lighting"
+  anime:
+    - "masterpiece"
+    - "best quality"
+    - "highly detailed"
+    - "1girl"
+  painterly:
+    - "oil painting"
+    - "artstation"
+    - "trending"
+    - "detailed brushwork"
+
+# ---------------------------------------------------------------------------
+# Global negative prompt
+# ---------------------------------------------------------------------------
+
+global_negative_prompt: >
+  blurry, low quality, low resolution, jpeg artefacts, deformed, ugly,
+  extra limbs, missing limbs, bad anatomy, text, watermark, signature,
+  cropped, out of frame, duplicate, worst quality
+
+# ---------------------------------------------------------------------------
+# Prompt templates
+# ---------------------------------------------------------------------------
+
+templates:
+
+  # ── Character consistency template ──────────────────────────────────────
+  # Use this when generating multiple scenes featuring the same character.
+  # Fill {action} and {setting} per generation; keep anchor fixed.
+  character_scene:
+    anchor: "sks person, photorealistic portrait"
+    template: "{anchor}, {action}, {setting}, dramatic lighting, ultra-detailed"
+    negative_prompt: "blurry, deformed, extra limbs, bad anatomy, watermark"
+    quality_tags:
+      - "8k uhd"
+      - "sharp focus"
+
+  # ── Style consistency template ───────────────────────────────────────────
+  # Use this when generating multiple images in the same artistic style.
+  style_transfer:
+    anchor: "<my-style>"
+    template: "a <my-style> {subject}, {setting}, masterpiece"
+    negative_prompt: "photorealistic, 3D render, blurry"
+    quality_tags:
+      - "artstation"
+      - "highly detailed"
+
+  # ── Product / object consistency template ───────────────────────────────
+  product_shot:
+    anchor: "sks product, studio lighting, white background"
+    template: "{anchor}, {action}, product photography"
+    negative_prompt: "cluttered, busy background, shadow artefacts"
+    quality_tags:
+      - "8k"
+      - "commercial photography"
+
+  # ── Landscape / environment template ────────────────────────────────────
+  environment:
+    anchor: "fantasy landscape, {biome}"
+    template: "{anchor}, {time_of_day}, {weather}, epic vista, matte painting"
+    negative_prompt: "people, characters, text, watermark"
+    quality_tags:
+      - "artstation"
+      - "4k"
+      - "cinematic"
+
+# ---------------------------------------------------------------------------
+# Example anchor strings
+# ---------------------------------------------------------------------------
+# Copy and paste these as the "anchor" field in templates above, or use them
+# directly in build_anchored_prompt() calls.
+
+anchors:
+  astronaut: "sks astronaut, white space suit, visor, NASA logo"
+  fantasy_warrior: "sks warrior, plate armour, magical sword, glowing runes"
+  anime_character: "sks character, 1girl, blue eyes, long silver hair, school uniform"
+  robot: "sks robot, sleek metallic body, glowing blue eyes, humanoid"
