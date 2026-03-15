@@ -66,9 +66,20 @@ class LoRAPipeline(ImageGenerationPipeline):
         self.lora_weights = (
             lora_weights if isinstance(lora_weights, list) else [lora_weights]
         )
-        self.lora_scale = (
-            lora_scale if isinstance(lora_scale, list) else [lora_scale]
-        )
+        # Broadcast a single scale value to all adapters, or validate that
+        # per-adapter scales match the number of adapter weight paths.
+        if isinstance(lora_scale, list):
+            if len(lora_scale) != len(self.lora_weights):
+                raise ValueError(
+                    f"Length of lora_scale ({len(lora_scale)}) must match "
+                    f"length of lora_weights ({len(self.lora_weights)}) when "
+                    "providing per-adapter scales.  Pass a single float to "
+                    "apply the same scale to all adapters."
+                )
+            self.lora_scale = lora_scale
+        else:
+            # Broadcast the single scale to every adapter
+            self.lora_scale = [lora_scale] * len(self.lora_weights)
 
     # ------------------------------------------------------------------
     # Internal helpers

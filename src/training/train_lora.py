@@ -152,6 +152,24 @@ def parse_args() -> LoRATrainingConfig:
     parser.add_argument("--mixed_precision", type=str, default="fp16")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--checkpointing_steps", type=int, default=500)
+    parser.add_argument(
+        "--report_to",
+        type=str,
+        default="tensorboard",
+        help="Logging backend for training metrics (e.g. 'tensorboard' or 'wandb').",
+    )
+    parser.add_argument(
+        "--resume_from_checkpoint",
+        type=str,
+        default=None,
+        help="Path to a checkpoint directory to resume training from.",
+    )
+    parser.add_argument(
+        "--target_modules",
+        nargs="+",
+        default=["to_q", "to_v", "to_k", "to_out.0"],
+        help="UNet attention sub-modules to apply LoRA to.",
+    )
 
     args = parser.parse_args()
     return LoRATrainingConfig(**vars(args))

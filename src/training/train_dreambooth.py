@@ -184,7 +184,15 @@ def parse_args() -> DreamBoothTrainingConfig:
     parser.add_argument("--output_dir", type=str, default="outputs/dreambooth")
     parser.add_argument("--instance_prompt", type=str, required=True)
     parser.add_argument("--class_prompt", type=str, required=True)
-    parser.add_argument("--with_prior_preservation", action="store_true", default=True)
+    parser.add_argument(
+        "--with_prior_preservation",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "Use prior-preservation loss during training (recommended). "
+            "Pass --no-with_prior_preservation to disable."
+        ),
+    )
     parser.add_argument("--prior_loss_weight", type=float, default=1.0)
     parser.add_argument("--num_class_images", type=int, default=200)
     parser.add_argument("--resolution", type=int, default=512)

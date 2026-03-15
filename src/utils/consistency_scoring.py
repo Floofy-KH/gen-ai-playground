@@ -48,17 +48,20 @@ class ConsistencyScorer:
 
     Example::
 
-        scorer = ConsistencyScorer(use_clip=True, use_pixel_mse=False)
+        scorer = ConsistencyScorer(use_pixel_mse=True)
         s = scorer.score(reference_image, generated_image)
         print(f"Similarity: {s:.3f}")
+
+        # Enable CLIP once CLIPScorer is implemented:
+        scorer = ConsistencyScorer(use_clip=True, clip_weight=1.0, use_pixel_mse=False)
     """
 
     def __init__(
         self,
-        use_clip: bool = True,
-        use_pixel_mse: bool = False,
+        use_clip: bool = False,
+        use_pixel_mse: bool = True,
         clip_weight: float = 1.0,
-        pixel_weight: float = 0.0,
+        pixel_weight: float = 1.0,
         device: Optional[str] = None,
     ) -> None:
         self.use_clip = use_clip

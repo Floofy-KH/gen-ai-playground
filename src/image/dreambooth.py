@@ -18,6 +18,7 @@ References:
 
 from __future__ import annotations
 
+import re
 from typing import Optional
 
 from PIL import Image
@@ -85,17 +86,28 @@ class DreamBoothPipeline(ImageGenerationPipeline):
         raise NotImplementedError("Stub: implement _load_pipeline() for DreamBooth.")
 
     def _inject_subject_token(self, prompt: str) -> str:
-        """Ensure the subject token appears in the prompt.
+        """Ensure the subject token appears in the prompt as a distinct token.
 
-        If ``self.subject_token`` is not already present, it is prepended.
+        Uses word-boundary matching so that a token like ``"sks dog"`` is not
+        falsely detected inside a longer word such as ``"sks doghouse"``.
+
+        If ``self.subject_token`` is not already present as a whole token
+        sequence, it is prepended.
 
         Args:
             prompt: Original prompt string.
 
         Returns:
-            Prompt guaranteed to contain the subject token.
+            Prompt guaranteed to contain the subject token as a distinct entry.
         """
-        if self.subject_token not in prompt:
+        # \b anchors match at word-character / non-word-character boundaries,
+        # preventing partial-word false positives (e.g. "sks dog" inside
+        # "sks doghouse").  re.escape handles any special regex characters in
+        # the token string.  The check is case-sensitive, matching the original
+        # behaviour and the convention that SD subject tokens (e.g. "sks") are
+        # always lower-case.
+        pattern = r"\b" + re.escape(self.subject_token) + r"\b"
+        if not re.search(pattern, prompt):
             return f"{self.subject_token}, {prompt}"
         return prompt
 
