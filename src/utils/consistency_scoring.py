@@ -79,6 +79,7 @@ class ConsistencyScorer:
         """Lazily initialise the CLIP scorer."""
         if self._clip_scorer is None:
             from src.utils.clip_blip_scoring import CLIPScorer
+
             self._clip_scorer = CLIPScorer(device=self.device)
         return self._clip_scorer
 
@@ -181,7 +182,5 @@ class ConsistencyScorer:
         Returns:
             List of ``(score, image)`` tuples sorted by score descending.
         """
-        scored = [
-            (self.score(reference, img), img) for img in generated_images
-        ]
+        scored = [(self.score(reference, img), img) for img in generated_images]
         return sorted(scored, key=lambda x: x[0], reverse=True)

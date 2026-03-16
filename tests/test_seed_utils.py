@@ -13,7 +13,6 @@ import pytest
 
 from src.utils.seed_utils import generate_with_locked_seed, lock_seed, make_generator, seed_range
 
-
 # ---------------------------------------------------------------------------
 # lock_seed
 # ---------------------------------------------------------------------------

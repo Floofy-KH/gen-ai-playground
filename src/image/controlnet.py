@@ -26,7 +26,6 @@ from PIL import Image
 
 from src.image.pipeline import ImageGenerationPipeline
 
-
 # Mapping from human-readable condition type to a default Hub model ID.
 # All entries target SDXL ControlNet checkpoints to match the repo's SDXL
 # default.  SD 1.5 alternatives are listed as comments for reference.

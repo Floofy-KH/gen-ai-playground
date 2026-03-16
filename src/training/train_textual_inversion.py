@@ -28,8 +28,6 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
-
 
 # ---------------------------------------------------------------------------
 # Configuration dataclass
@@ -72,7 +70,7 @@ class TextualInversionTrainingConfig:
     initializer_token: str = "object"
     learnable_property: str = "object"  # "object" or "style"
     num_vectors: int = 1
-    resolution: int = 1024   # SDXL native resolution; use 512 for SD 1.5
+    resolution: int = 1024  # SDXL native resolution; use 512 for SD 1.5
     train_batch_size: int = 1
     max_train_steps: int = 3000
     learning_rate: float = 5e-4
@@ -138,9 +136,7 @@ def train(config: TextualInversionTrainingConfig) -> Path:
         #    )
     """
     # TODO: Implement the training loop as outlined above.
-    raise NotImplementedError(
-        "Stub: implement train() for Textual Inversion."
-    )
+    raise NotImplementedError("Stub: implement train() for Textual Inversion.")
 
 
 # ---------------------------------------------------------------------------
@@ -154,7 +150,9 @@ def parse_args() -> TextualInversionTrainingConfig:
     parser = argparse.ArgumentParser(
         description="Train a Textual Inversion embedding on Stable Diffusion."
     )
-    parser.add_argument("--base_model_id", type=str, default="stabilityai/stable-diffusion-xl-base-1.0")
+    parser.add_argument(
+        "--base_model_id", type=str, default="stabilityai/stable-diffusion-xl-base-1.0"
+    )
     parser.add_argument("--train_data_dir", type=str, required=True)
     parser.add_argument("--output_dir", type=str, default="outputs/textual_inversion")
     parser.add_argument("--placeholder_token", type=str, required=True)

@@ -40,12 +40,14 @@ def lock_seed(seed: int) -> None:
     random.seed(seed)
     try:
         import numpy as np
+
         np.random.seed(seed)
     except ImportError:
         pass
 
     try:
         import torch
+
         torch.manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
@@ -74,11 +76,11 @@ def make_generator(seed: Optional[int], device: str = "cpu"):
         return None
     try:
         import torch
+
         return torch.Generator(device=device).manual_seed(seed)
     except ImportError as exc:
         raise ImportError(
-            "PyTorch is required for make_generator(). "
-            "Install it with: pip install torch"
+            "PyTorch is required for make_generator(). " "Install it with: pip install torch"
         ) from exc
 
 

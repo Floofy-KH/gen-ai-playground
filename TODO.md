@@ -126,8 +126,8 @@ All training loops raise `NotImplementedError`. Each script includes a full
 
 ## Infrastructure / DX
 
-- [ ] Add a GitHub Actions CI workflow (`.github/workflows/ci.yml`) to run
+- [x] Add a GitHub Actions CI workflow (`.github/workflows/ci.yml`) to run
   `pytest` on every push / PR (pure-Python tests pass without a GPU).
-- [ ] Consider adding `ruff` and `black` formatting checks to CI.
-- [ ] Evaluate adding a `uv.lock` file to pin exact dependency versions for
+- [x] Consider adding `ruff` and `black` formatting checks to CI.
+- [x] Evaluate adding a `uv.lock` file to pin exact dependency versions for
   reproducible environments.

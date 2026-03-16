@@ -32,7 +32,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
 
-
 # ---------------------------------------------------------------------------
 # Configuration dataclass
 # ---------------------------------------------------------------------------
@@ -68,7 +67,7 @@ class LoRATrainingConfig:
     instance_data_dir: str = "data/instance_images"
     output_dir: str = "outputs/lora"
     instance_prompt: str = "a photo of sks subject"
-    resolution: int = 1024   # SDXL native resolution; use 512 for SD 1.5
+    resolution: int = 1024  # SDXL native resolution; use 512 for SD 1.5
     train_batch_size: int = 1
     num_train_epochs: int = 100
     learning_rate: float = 1e-4
@@ -80,9 +79,7 @@ class LoRATrainingConfig:
     checkpointing_steps: int = 500
     report_to: str = "tensorboard"
     resume_from_checkpoint: Optional[str] = None
-    target_modules: List[str] = field(
-        default_factory=lambda: ["to_q", "to_v", "to_k", "to_out.0"]
-    )
+    target_modules: List[str] = field(default_factory=lambda: ["to_q", "to_v", "to_k", "to_out.0"])
 
 
 # ---------------------------------------------------------------------------
@@ -135,10 +132,10 @@ def train(config: LoRATrainingConfig) -> Path:
 
 def parse_args() -> LoRATrainingConfig:
     """Parse command-line arguments and return a :class:`LoRATrainingConfig`."""
-    parser = argparse.ArgumentParser(
-        description="Fine-tune a LoRA adapter on Stable Diffusion."
+    parser = argparse.ArgumentParser(description="Fine-tune a LoRA adapter on Stable Diffusion.")
+    parser.add_argument(
+        "--base_model_id", type=str, default="stabilityai/stable-diffusion-xl-base-1.0"
     )
-    parser.add_argument("--base_model_id", type=str, default="stabilityai/stable-diffusion-xl-base-1.0")
     parser.add_argument("--instance_data_dir", type=str, required=True)
     parser.add_argument("--output_dir", type=str, default="outputs/lora")
     parser.add_argument("--instance_prompt", type=str, required=True)

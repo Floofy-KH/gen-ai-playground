@@ -27,7 +27,7 @@ References:
 
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from PIL import Image
 
@@ -208,10 +208,7 @@ class CLIPScorer:
             List of cosine similarity scores.
         """
         ref_emb = self._get_image_embedding(reference)
-        return [
-            self._cosine_similarity(ref_emb, self._get_image_embedding(img))
-            for img in images
-        ]
+        return [self._cosine_similarity(ref_emb, self._get_image_embedding(img)) for img in images]
 
 
 class BLIPScorer:
@@ -319,9 +316,7 @@ class BLIPScorer:
 
         if use_clip_for_comparison:
             clip_scorer = CLIPScorer(device=self.device)
-            raw_score = clip_scorer.text_similarity(
-                generated_caption, reference_text
-            )
+            raw_score = clip_scorer.text_similarity(generated_caption, reference_text)
             # Normalise from [-1, 1] to [0, 1]
             return (raw_score + 1.0) / 2.0
 

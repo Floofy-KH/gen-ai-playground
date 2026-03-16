@@ -29,8 +29,6 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
-
 
 # ---------------------------------------------------------------------------
 # Configuration dataclass
@@ -76,7 +74,7 @@ class DreamBoothTrainingConfig:
     with_prior_preservation: bool = True
     prior_loss_weight: float = 1.0
     num_class_images: int = 200
-    resolution: int = 1024   # SDXL native resolution; use 512 for SD 1.5
+    resolution: int = 1024  # SDXL native resolution; use 512 for SD 1.5
     train_batch_size: int = 1
     num_train_epochs: int = 4
     learning_rate: float = 5e-6
@@ -178,7 +176,9 @@ def parse_args() -> DreamBoothTrainingConfig:
     parser = argparse.ArgumentParser(
         description="Fine-tune a Stable Diffusion model with DreamBooth."
     )
-    parser.add_argument("--base_model_id", type=str, default="stabilityai/stable-diffusion-xl-base-1.0")
+    parser.add_argument(
+        "--base_model_id", type=str, default="stabilityai/stable-diffusion-xl-base-1.0"
+    )
     parser.add_argument("--instance_data_dir", type=str, required=True)
     parser.add_argument("--class_data_dir", type=str, default="data/class_images")
     parser.add_argument("--output_dir", type=str, default="outputs/dreambooth")
