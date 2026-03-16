@@ -28,13 +28,20 @@ from src.image.pipeline import ImageGenerationPipeline
 
 
 # Mapping from human-readable condition type to a default Hub model ID.
+# All entries target SDXL ControlNet checkpoints to match the repo's SDXL
+# default.  SD 1.5 alternatives are listed as comments for reference.
 # Extend this dict as you add support for more condition types.
 _DEFAULT_CONTROLNET_MODELS = {
-    "canny": "lllyasviel/sd-controlnet-canny",
-    "depth": "lllyasviel/sd-controlnet-depth",
-    "pose": "lllyasviel/sd-controlnet-openpose",
-    "scribble": "lllyasviel/sd-controlnet-scribble",
-    "normal": "lllyasviel/sd-controlnet-normal",
+    "canny": "diffusers/controlnet-canny-sdxl-1.0",
+    "depth": "diffusers/controlnet-depth-sdxl-1.0",
+    "pose": "thibaud/controlnet-openpose-sdxl-1.0",
+    "scribble": "xinsir/controlnet-scribble-sdxl-1.0",
+    # SD 1.5 alternatives (use when base_model_id is an SD 1.5 model):
+    # "canny":    "lllyasviel/sd-controlnet-canny",
+    # "depth":    "lllyasviel/sd-controlnet-depth",
+    # "pose":     "lllyasviel/sd-controlnet-openpose",
+    # "scribble": "lllyasviel/sd-controlnet-scribble",
+    # "normal":   "lllyasviel/sd-controlnet-normal",
 }
 
 

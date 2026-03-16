@@ -35,13 +35,15 @@ class IPAdapterPipeline(ImageGenerationPipeline):
 
     Args:
         base_model_id: Hugging Face Hub ID for the base Stable Diffusion
-            model (e.g. ``"runwayml/stable-diffusion-v1-5"``).
+            model (e.g. ``"stabilityai/stable-diffusion-xl-base-1.0"``).
         ip_adapter_model_id: Hub ID for the IP-Adapter weights
             (e.g. ``"h94/IP-Adapter"``).
         ip_adapter_subfolder: Subfolder inside the IP-Adapter repo containing
-            the model weights (e.g. ``"models"``).
-        ip_adapter_weight_name: Filename of the IP-Adapter weights file
-            (e.g. ``"ip-adapter_sd15.bin"``).
+            the model weights. Defaults to ``"sdxl_models"`` for SDXL;
+            use ``"models"`` for SD 1.5 models.
+        ip_adapter_weight_name: Filename of the IP-Adapter weights file.
+            Defaults to ``"ip-adapter_sdxl.bin"`` for SDXL;
+            use ``"ip-adapter_sd15.bin"`` for SD 1.5.
         device: PyTorch device string.
         dtype: Optional torch dtype.
 
@@ -51,12 +53,12 @@ class IPAdapterPipeline(ImageGenerationPipeline):
         from src.image.ip_adapter import IPAdapterPipeline
 
         pipe = IPAdapterPipeline(
-            base_model_id="runwayml/stable-diffusion-v1-5",
+            base_model_id="stabilityai/stable-diffusion-xl-base-1.0",
             ip_adapter_model_id="h94/IP-Adapter",
         )
         ref = Image.open("my_character.png")
         out = pipe.generate(
-            prompt="my character exploring a jungle",
+            prompt="my character exploring a jungle, anime style, masterpiece",
             reference_image=ref,
             ip_adapter_scale=0.6,
             seed=42,
@@ -68,8 +70,8 @@ class IPAdapterPipeline(ImageGenerationPipeline):
         self,
         base_model_id: str,
         ip_adapter_model_id: str = "h94/IP-Adapter",
-        ip_adapter_subfolder: str = "models",
-        ip_adapter_weight_name: str = "ip-adapter_sd15.bin",
+        ip_adapter_subfolder: str = "sdxl_models",
+        ip_adapter_weight_name: str = "ip-adapter_sdxl.bin",
         device: Optional[str] = None,
         dtype=None,
     ) -> None:

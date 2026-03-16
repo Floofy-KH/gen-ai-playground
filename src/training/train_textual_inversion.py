@@ -154,14 +154,14 @@ def parse_args() -> TextualInversionTrainingConfig:
     parser = argparse.ArgumentParser(
         description="Train a Textual Inversion embedding on Stable Diffusion."
     )
-    parser.add_argument("--base_model_id", type=str, default="runwayml/stable-diffusion-v1-5")
+    parser.add_argument("--base_model_id", type=str, default="stabilityai/stable-diffusion-xl-base-1.0")
     parser.add_argument("--train_data_dir", type=str, required=True)
     parser.add_argument("--output_dir", type=str, default="outputs/textual_inversion")
     parser.add_argument("--placeholder_token", type=str, required=True)
     parser.add_argument("--initializer_token", type=str, default="object")
     parser.add_argument("--learnable_property", type=str, default="object")
     parser.add_argument("--num_vectors", type=int, default=1)
-    parser.add_argument("--resolution", type=int, default=512)
+    parser.add_argument("--resolution", type=int, default=1024)
     parser.add_argument("--train_batch_size", type=int, default=1)
     parser.add_argument("--max_train_steps", type=int, default=3000)
     parser.add_argument("--learning_rate", type=float, default=5e-4)

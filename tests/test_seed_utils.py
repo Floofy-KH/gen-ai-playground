@@ -8,11 +8,10 @@ a graceful ImportError path.
 from __future__ import annotations
 
 import sys
-import types
 
 import pytest
 
-from src.utils.seed_utils import generate_with_locked_seed, lock_seed, seed_range
+from src.utils.seed_utils import generate_with_locked_seed, lock_seed, make_generator, seed_range
 
 
 # ---------------------------------------------------------------------------
@@ -57,6 +56,41 @@ class TestLockSeed:
         """lock_seed should not raise if torch is not installed."""
         monkeypatch.setitem(sys.modules, "torch", None)
         lock_seed(42)
+
+
+# ---------------------------------------------------------------------------
+# make_generator
+# ---------------------------------------------------------------------------
+
+
+class TestMakeGenerator:
+    def test_none_seed_returns_none(self):
+        assert make_generator(None) is None
+
+    def test_none_seed_returns_none_with_device(self):
+        assert make_generator(None, device="cpu") is None
+
+    def test_raises_import_error_without_torch(self, monkeypatch):
+        """make_generator should raise ImportError when torch is not installed."""
+        monkeypatch.setitem(sys.modules, "torch", None)
+        with pytest.raises(ImportError, match="PyTorch is required"):
+            make_generator(42)
+
+    def test_torch_generator_when_available(self):
+        """When torch is installed, returns a torch.Generator."""
+        torch = pytest.importorskip("torch")
+        gen = make_generator(42, device="cpu")
+        assert isinstance(gen, torch.Generator)
+
+    def test_torch_generator_deterministic(self):
+        """Same seed produces the same random state."""
+        torch = pytest.importorskip("torch")
+        gen1 = make_generator(7, device="cpu")
+        gen2 = make_generator(7, device="cpu")
+        # Both generators should produce identical random tensors
+        t1 = torch.rand(5, generator=gen1)
+        t2 = torch.rand(5, generator=gen2)
+        assert torch.allclose(t1, t2)
 
 
 # ---------------------------------------------------------------------------
