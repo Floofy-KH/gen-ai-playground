@@ -1,0 +1,108 @@
+# configs/model_config.yaml
+#
+# Example model and pipeline configurations for the generative AI playground.
+#
+# Copy this file and adjust values to suit your hardware and desired models.
+# All Hub model IDs can be swapped for local paths.
+
+# ---------------------------------------------------------------------------
+# Base model settings
+# ---------------------------------------------------------------------------
+
+base_model:
+  # SDXL — native 1024 px, excellent for illustrated / anime / concept-art styles
+  model_id: "stabilityai/stable-diffusion-xl-base-1.0"
+  # Alternatives:
+  #   "cagliostrolab/animagine-xl-3.1"       (anime-focused SDXL fine-tune)
+  #   "RunDiffusion/Juggernaut-XL-v9"        (versatile illustration model)
+  #   "black-forest-labs/FLUX.1-dev"         (FLUX, strong prompt adherence)
+  #   "runwayml/stable-diffusion-v1-5"       (SD 1.5, ≥4 GB VRAM, smaller imgs)
+
+  device: "cuda"          # "cuda" | "cpu" | "mps" (Apple Silicon)
+  dtype: "float16"        # "float32" | "float16" | "bfloat16"
+  variant: "fp16"         # Set to null for full-precision models
+
+# ---------------------------------------------------------------------------
+# Generation defaults
+# ---------------------------------------------------------------------------
+
+generation:
+  num_inference_steps: 30
+  guidance_scale: 7.0     # SDXL works well at 6–8; lower than SD 1.5 norm
+  width: 1024             # SDXL native resolution
+  height: 1024
+  # Illustrated / anime negative prompt — suppresses photorealistic artefacts
+  negative_prompt: >
+    photorealistic, realistic, photograph, 3D render, CGI,
+    blurry, low quality, jpeg artefacts, deformed, extra limbs,
+    bad anatomy, watermark, signature, cropped, worst quality
+
+# ---------------------------------------------------------------------------
+# IP-Adapter settings
+# ---------------------------------------------------------------------------
+
+ip_adapter:
+  # SDXL IP-Adapter weights
+  model_id: "h94/IP-Adapter"
+  subfolder: "sdxl_models"
+  weight_name: "ip-adapter_sdxl.bin"
+  # For SD 1.5, use:
+  #   subfolder: "models"
+  #   weight_name: "ip-adapter_sd15.bin"
+  default_scale: 0.6      # 0 = ignore reference, 1 = fully follow reference
+
+# ---------------------------------------------------------------------------
+# ControlNet settings
+# ---------------------------------------------------------------------------
+
+controlnet:
+  # SDXL ControlNet models
+  models:
+    canny:   "diffusers/controlnet-canny-sdxl-1.0"
+    depth:   "diffusers/controlnet-depth-sdxl-1.0"
+    pose:    "thibaud/controlnet-openpose-sdxl-1.0"
+    scribble: "xinsir/controlnet-scribble-sdxl-1.0"
+  # SD 1.5 alternatives (swap in if using an SD 1.5 base model):
+  #   canny:   "lllyasviel/sd-controlnet-canny"
+  #   depth:   "lllyasviel/sd-controlnet-depth"
+  #   pose:    "lllyasviel/sd-controlnet-openpose"
+  #   scribble: "lllyasviel/sd-controlnet-scribble"
+  default_type: "canny"
+  default_conditioning_scale: 1.0
+
+# ---------------------------------------------------------------------------
+# Reference-only sampling settings
+# ---------------------------------------------------------------------------
+
+reference_only:
+  attention_auto_machine_weight: 1.0
+  gn_auto_machine_weight: 1.0
+  style_fidelity: 0.5     # 0 = prompt-driven, 1 = reference style-driven
+
+# ---------------------------------------------------------------------------
+# Scheduler / sampler settings
+# ---------------------------------------------------------------------------
+
+scheduler:
+  # Scheduler class name from diffusers
+  # Options: DDIMScheduler | PNDMScheduler | EulerDiscreteScheduler |
+  #          DPMSolverMultistepScheduler | UniPCMultistepScheduler
+  type: "DPMSolverMultistepScheduler"
+  # DPM-Solver++ gives good results in 20-25 steps
+  num_inference_steps: 25
+
+# ---------------------------------------------------------------------------
+# VAE settings
+# ---------------------------------------------------------------------------
+
+vae:
+  # Use a standalone improved VAE for better colour accuracy (optional)
+  # model_id: "stabilityai/sd-vae-ft-mse"
+  model_id: null  # null = use the VAE bundled with the base model
+
+# ---------------------------------------------------------------------------
+# Safety / content filtering
+# ---------------------------------------------------------------------------
+
+safety_checker:
+  enabled: false   # Disable for research; re-enable for public-facing demos

@@ -1,0 +1,58 @@
+# Byte-compiled / optimised / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+
+# uv
+uv.lock
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Generated outputs (keep assets/reference for reference images)
+assets/outputs/
+
+# Model weights and checkpoints (can be very large)
+outputs/
+*.safetensors
+*.ckpt
+*.pt
+*.bin
+*.pth
+
+# Exception: allow small example embedding files to be committed if needed
+# !embeddings/*.bin
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+wandb/
+runs/

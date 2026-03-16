@@ -1,0 +1,47 @@
+# Core deep learning framework
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Hugging Face ecosystem
+diffusers>=0.27.0
+transformers>=4.38.0
+huggingface_hub>=0.21.0
+accelerate>=0.27.0
+peft>=0.9.0                    # Parameter-Efficient Fine-Tuning (LoRA support)
+datasets>=2.17.0               # Dataset utilities for training
+
+# Image processing
+Pillow>=10.0.0
+opencv-python>=4.9.0           # OpenCV for image pre/post-processing
+imageio>=2.34.0                # Image I/O utilities
+
+# Numerical / scientific
+numpy>=1.24.0
+scipy>=1.12.0
+
+# CLIP / BLIP similarity scoring
+# openai/CLIP is installed directly from GitHub; see README for instructions.
+# Alternatively, use the Hugging Face transformers CLIP implementation (already included above).
+
+# Notebook support
+jupyter>=1.0.0
+jupyterlab>=4.0.0
+ipywidgets>=8.0.0              # Interactive widgets in notebooks
+
+# Optional UI (uncomment the one you prefer)
+# gradio>=4.0.0
+# streamlit>=1.32.0
+
+# Utilities
+tqdm>=4.66.0                   # Progress bars
+pyyaml>=6.0.1                  # YAML config parsing
+omegaconf>=2.3.0               # Structured configuration (optional but useful)
+einops>=0.7.0                  # Tensor manipulation helpers used by many diffusion models
+
+# Dev / linting / testing
+# Install the full dev group with: uv pip install -e ".[dev]"
+# or individually via pip:
+pytest>=8.0
+pytest-cov>=5.0
+# black
+# ruff
