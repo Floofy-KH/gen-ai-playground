@@ -174,6 +174,24 @@ class CLIPScorer:
         txt_emb = self._get_text_embedding(text)
         return self._cosine_similarity(img_emb, txt_emb)
 
+    def text_similarity(
+        self,
+        text_a: str,
+        text_b: str,
+    ) -> float:
+        """Compute CLIP cosine similarity between two text strings.
+
+        Args:
+            text_a: First text string.
+            text_b: Second text string.
+
+        Returns:
+            Cosine similarity in ``[-1, 1]`` (higher = more similar).
+        """
+        emb_a = self._get_text_embedding(text_a)
+        emb_b = self._get_text_embedding(text_b)
+        return self._cosine_similarity(emb_a, emb_b)
+
     def batch_image_similarity(
         self,
         reference: Image.Image,
@@ -301,8 +319,8 @@ class BLIPScorer:
 
         if use_clip_for_comparison:
             clip_scorer = CLIPScorer(device=self.device)
-            raw_score = clip_scorer.image_text_similarity(
-                image, reference_text
+            raw_score = clip_scorer.text_similarity(
+                generated_caption, reference_text
             )
             # Normalise from [-1, 1] to [0, 1]
             return (raw_score + 1.0) / 2.0
