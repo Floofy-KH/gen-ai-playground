@@ -11,10 +11,10 @@ can be completed and tested locally.
 All pipeline classes currently raise `NotImplementedError`. Each has a detailed
 `# Implementation outline:` comment in its docstring to guide the work.
 
-- [ ] **`pipeline.py`** — Implement `ImageGenerationPipeline._load_pipeline()`:
+- [x] **`pipeline.py`** — Implement `ImageGenerationPipeline._load_pipeline()`:
   load a `diffusers` `StableDiffusionXLPipeline` (or equivalent) from
   `self.model_id`, move to device, enable memory-efficient attention.
-- [ ] **`pipeline.py`** — Implement `ImageGenerationPipeline.generate()`:
+- [x] **`pipeline.py`** — Implement `ImageGenerationPipeline.generate()`:
   build a `torch.Generator` from `seed`, call `self._pipe`, return `PIL.Image`.
 - [ ] **`lora.py`** — Implement `LoRAPipeline._load_pipeline()`: load base
   pipeline, then load each LoRA weight via `load_lora_weights()` and fuse.
@@ -106,7 +106,7 @@ All training loops raise `NotImplementedError`. Each script includes a full
 
 ## Notebooks (`notebooks/`)
 
-- [ ] Run `01_image_gen.ipynb` end-to-end once `ImageGenerationPipeline` is
+- [x] Run `01_image_gen.ipynb` end-to-end once `ImageGenerationPipeline` is
   implemented; replace `# TODO` stub cells with live outputs.
 - [ ] Run `02_lora_ip_adapter_dreambooth.ipynb` once IP-Adapter, LoRA, and
   DreamBooth pipelines are implemented; fill in real model paths.

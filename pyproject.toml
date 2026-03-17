@@ -31,6 +31,36 @@ notebooks = [
     "jupyterlab>=4.0.0",
     "ipywidgets>=8.0.0",
 ]
+# GPU / CUDA build of PyTorch — installs from the PyTorch CUDA 12.8 index.
+# Usage:  uv sync --extra cuda
+# The `explicit = true` flag on the index below ensures that only torch and
+# torchvision are resolved through the CUDA wheel index; all other packages
+# (including their transitive dependencies) continue to come from PyPI.
+cuda = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+]
+
+# ---------------------------------------------------------------------------
+# uv index configuration
+# ---------------------------------------------------------------------------
+
+[tool.uv.sources]
+torch = [
+    {index = "torch-cu128", extra = "cuda"},
+]
+torchvision = [
+    {index = "torch-cu128", extra = "cuda"},
+]
+
+[[tool.uv.index]]
+name = "torch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+# explicit = true means this index is ONLY used for packages that explicitly
+# reference it via tool.uv.sources above.  Transitive dependencies (e.g.
+# markupsafe) are still resolved from PyPI, which is why CI passes even though
+# the CUDA index only carries wheels for a small subset of packages.
+explicit = true
 
 # ---------------------------------------------------------------------------
 # Build backend (required by PEP 517; uv uses this)
