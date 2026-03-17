@@ -1,5 +1,8 @@
 # Core deep learning framework
-# Default: CUDA 12.8 build. For CPU-only, use: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# CPU build (default).  For CUDA 12.8, use uv instead:
+#   uv sync --extra cuda
+# or for other CUDA versions / pip installs:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 torch>=2.0.0
 torchvision>=0.15.0
 
