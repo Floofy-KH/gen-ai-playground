@@ -20,13 +20,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Install only the lightweight dependencies needed for pure-Python tests
       # (no torch/diffusers/etc. — those require a GPU runner).
       # uv sync enforces uv.lock so versions are fully reproducible.
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
