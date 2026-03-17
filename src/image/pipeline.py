@@ -66,24 +66,37 @@ class ImageGenerationPipeline:
         import torch
         from diffusers import StableDiffusionXLPipeline
 
-        device = self.device or ("cuda" if torch.cuda.is_available() else "cpu")
-        dtype = self.dtype or (torch.float16 if device == "cuda" else torch.float32)
+        if self.device is not None and self.device.startswith("cuda"):
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    f"Device '{self.device}' was requested but CUDA is not available on this machine. "
+                    "Pass device='cpu' or omit the device argument to use CPU automatically."
+                )
+            device = self.device
+        else:
+            device = self.device or ("cuda" if torch.cuda.is_available() else "cpu")
+
+        kwargs = {}
+        if self.dtype is not None:
+            kwargs["torch_dtype"] = self.dtype
+        elif device.startswith("cuda"):
+            kwargs["torch_dtype"] = torch.float16
 
         self._pipe = StableDiffusionXLPipeline.from_pretrained(
             self.model_id,
-            torch_dtype=dtype,
+            **kwargs,
         ).to(device)
 
         # Enable memory-efficient attention when xformers is available
         try:
             self._pipe.enable_xformers_memory_efficient_attention()
-        except Exception:
+        except (ImportError, AttributeError, ValueError):
             pass
 
         # Persist resolved device and dtype so subclasses and generate() can
         # reference them without re-computing the defaults.
         self.device = device
-        self.dtype = dtype
+        self.dtype = kwargs.get("torch_dtype")
 
     def _ensure_loaded(self) -> None:
         """Ensure the pipeline is loaded before inference."""
@@ -124,10 +137,10 @@ class ImageGenerationPipeline:
         """
         self._ensure_loaded()
 
-        import torch
-
         generator = None
         if seed is not None:
+            import torch
+
             generator = torch.Generator(device=self.device).manual_seed(seed)
 
         output = self._pipe(

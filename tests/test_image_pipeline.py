@@ -4,12 +4,16 @@ Covers ImageGenerationPipeline constructor, lazy loading, generate(), generate_b
 and save_images() without loading any model weights (no GPU or internet access required).
 
 The diffusers pipeline call and torch.Generator are mocked so that every test
-is pure-Python and completes in milliseconds.
+is pure-Python and completes in milliseconds.  Tests that require torch (for
+Generator assertions) are skipped via ``pytest.importorskip`` when torch is
+absent — matching the CI environment where only lightweight dev deps are installed.
 """
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+from types import ModuleType
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -40,6 +44,35 @@ def _make_loaded_pipeline(model_id: str = "fake/model") -> ImageGenerationPipeli
     return pipe
 
 
+def _make_torch_mock():
+    """Return a minimal sys.modules-style mock for torch.
+
+    Provides the subset of the torch API used inside _load_pipeline():
+    `torch.cuda.is_available`, `torch.float16`, `torch.float32`, `torch.Generator`.
+    """
+    torch_mock = MagicMock(spec=ModuleType)
+    torch_mock.float16 = "float16_sentinel"
+    torch_mock.float32 = "float32_sentinel"
+    torch_mock.cuda = MagicMock()
+    torch_mock.cuda.is_available = MagicMock(return_value=False)
+    torch_mock.Generator = MagicMock()
+    return torch_mock
+
+
+def _make_diffusers_mock():
+    """Return a minimal sys.modules-style mock for diffusers.
+
+    Provides `StableDiffusionXLPipeline.from_pretrained().to()` → MagicMock pipe.
+    """
+    pipe_instance = MagicMock()
+    sdxl_cls = MagicMock()
+    sdxl_cls.from_pretrained.return_value.to.return_value = pipe_instance
+
+    diffusers_mock = MagicMock(spec=ModuleType)
+    diffusers_mock.StableDiffusionXLPipeline = sdxl_cls
+    return diffusers_mock, sdxl_cls, pipe_instance
+
+
 # ---------------------------------------------------------------------------
 # Constructor
 # ---------------------------------------------------------------------------
@@ -55,7 +88,7 @@ class TestInit:
         assert pipe.device == "cpu"
 
     def test_dtype_stored(self):
-        import torch
+        torch = pytest.importorskip("torch")
         pipe = ImageGenerationPipeline("m", dtype=torch.float32)
         assert pipe.dtype is torch.float32
 
@@ -103,46 +136,151 @@ class TestEnsureLoaded:
 
 
 class TestLoadPipeline:
+    """Tests for the real _load_pipeline() implementation.
+
+    Both `torch` and `diffusers` are injected via `sys.modules` patching
+    so no model weights, GPU, or heavy ML libraries are needed.  Each test
+    controls `torch.cuda.is_available` independently.
+    """
+
     def test_sets_pipe(self):
         """_load_pipeline() should assign self._pipe after loading."""
+        torch_mock = _make_torch_mock()
+        diffusers_mock, _, pipe_instance = _make_diffusers_mock()
 
-        class _PipelineWithMockedLoad(ImageGenerationPipeline):
-            def _load_pipeline(self):
-                self._pipe = MagicMock()
-                self.device = "cpu"
-                self.dtype = None
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model")
+            p._load_pipeline()
 
-        p = _PipelineWithMockedLoad("fake/model")
-        p._ensure_loaded()
-        assert p._pipe is not None
+        assert p._pipe is pipe_instance
+
+    def test_from_pretrained_called_with_model_id(self):
+        """from_pretrained() should receive the configured model_id."""
+        torch_mock = _make_torch_mock()
+        diffusers_mock, sdxl_cls, _ = _make_diffusers_mock()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("my/model-id")
+            p._load_pipeline()
+
+        sdxl_cls.from_pretrained.assert_called_once()
+        assert sdxl_cls.from_pretrained.call_args.args[0] == "my/model-id"
+
+    def test_uses_cpu_when_cuda_unavailable_and_device_none(self):
+        """When device is None and CUDA is unavailable, cpu should be used."""
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = False
+        diffusers_mock, _, _ = _make_diffusers_mock()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model")
+            p._load_pipeline()
+
+        assert p.device == "cpu"
+
+    def test_uses_cuda_when_available_and_device_none(self):
+        """When device is None and CUDA is available, cuda should be used."""
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = True
+        diffusers_mock, _, _ = _make_diffusers_mock()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model")
+            p._load_pipeline()
+
+        assert p.device == "cuda"
+
+    def test_explicit_cpu_device_honoured(self):
+        """Explicitly passing device='cpu' should use CPU even if CUDA is available."""
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = True
+        diffusers_mock, _, _ = _make_diffusers_mock()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model", device="cpu")
+            p._load_pipeline()
+
+        assert p.device == "cpu"
+
+    def test_raises_when_cuda_requested_but_unavailable(self):
+        """A RuntimeError should be raised when device='cuda' but CUDA is unavailable."""
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = False
+        diffusers_mock, _, _ = _make_diffusers_mock()
+
+        with (
+            patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}),
+            pytest.raises(RuntimeError, match="CUDA is not available"),
+        ):
+            p = ImageGenerationPipeline("fake/model", device="cuda")
+            p._load_pipeline()
+
+    def test_no_torch_dtype_passed_when_dtype_none_on_cpu(self):
+        """When dtype=None and device='cpu', torch_dtype should not be passed."""
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = False
+        diffusers_mock, sdxl_cls, _ = _make_diffusers_mock()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model")
+            p._load_pipeline()
+
+        call_kwargs = sdxl_cls.from_pretrained.call_args.kwargs
+        assert "torch_dtype" not in call_kwargs
+
+    def test_explicit_dtype_passed_to_from_pretrained(self):
+        """When dtype is explicitly set, it should be forwarded to from_pretrained."""
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = False
+        diffusers_mock, sdxl_cls, _ = _make_diffusers_mock()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model", dtype=torch_mock.float32)
+            p._load_pipeline()
+
+        call_kwargs = sdxl_cls.from_pretrained.call_args.kwargs
+        assert call_kwargs["torch_dtype"] is torch_mock.float32
+
+    def test_float16_used_automatically_on_cuda(self):
+        """When dtype=None and device auto-resolves to cuda, float16 should be used."""
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = True
+        diffusers_mock, sdxl_cls, _ = _make_diffusers_mock()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model")
+            p._load_pipeline()
+
+        call_kwargs = sdxl_cls.from_pretrained.call_args.kwargs
+        assert call_kwargs.get("torch_dtype") is torch_mock.float16
+
+    def test_xformers_error_does_not_propagate(self):
+        """ImportError/AttributeError from xformers should be silently ignored."""
+        torch_mock = _make_torch_mock()
+        diffusers_mock, _, pipe_instance = _make_diffusers_mock()
+        pipe_instance.enable_xformers_memory_efficient_attention.side_effect = ImportError(
+            "xformers not installed"
+        )
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model")
+            p._load_pipeline()  # Should not raise
+
+        assert p._pipe is pipe_instance
 
     def test_resolves_device_on_load(self):
         """After _load_pipeline(), self.device should be set to a concrete string."""
-        class _MockLoad(ImageGenerationPipeline):
-            def _load_pipeline(self):
-                import torch
-                self.device = self.device or ("cuda" if torch.cuda.is_available() else "cpu")
-                self.dtype = self.dtype or torch.float32
-                self._pipe = MagicMock()
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = False
+        diffusers_mock, _, _ = _make_diffusers_mock()
 
-        p = _MockLoad("fake/model")
+        p = ImageGenerationPipeline("fake/model")
         assert p.device is None  # Before load
-        p._ensure_loaded()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p._load_pipeline()
+
         assert p.device in ("cuda", "cpu")
-
-    def test_uses_cpu_when_cuda_unavailable(self):
-        """When CUDA is not available and device is None, cpu should be used."""
-        class _MockLoad(ImageGenerationPipeline):
-            def _load_pipeline(self):
-                import torch
-                device = self.device or ("cuda" if torch.cuda.is_available() else "cpu")
-                self.device = device
-                self._pipe = MagicMock()
-
-        with patch("torch.cuda.is_available", return_value=False):
-            p = _MockLoad("fake/model")
-            p._ensure_loaded()
-            assert p.device == "cpu"
 
 
 # ---------------------------------------------------------------------------
@@ -258,6 +396,7 @@ class TestGenerateBatch:
         assert results == []
 
     def test_same_seed_used_for_all(self):
+        pytest.importorskip("torch")
         pipe = _make_loaded_pipeline()
         pipe.generate_batch(["a", "b", "c"], seed=99)
         for c in pipe._pipe.call_args_list:

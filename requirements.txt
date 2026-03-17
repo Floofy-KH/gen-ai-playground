@@ -1,6 +1,7 @@
 # Core deep learning framework
-torch==2.9.1+cu128
-torchvision==0.24.1+cu128
+# Default: CUDA 12.8 build. For CPU-only, use: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torch>=2.0.0
+torchvision>=0.15.0
 
 # Hugging Face ecosystem
 diffusers>=0.27.0
