@@ -12,7 +12,6 @@ from PIL import Image
 
 from src.utils.consistency_scoring import ConsistencyScorer
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

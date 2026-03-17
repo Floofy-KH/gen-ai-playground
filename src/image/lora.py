@@ -63,9 +63,7 @@ class LoRAPipeline(ImageGenerationPipeline):
         dtype=None,
     ) -> None:
         super().__init__(model_id=base_model_id, device=device, dtype=dtype)
-        self.lora_weights = (
-            lora_weights if isinstance(lora_weights, list) else [lora_weights]
-        )
+        self.lora_weights = lora_weights if isinstance(lora_weights, list) else [lora_weights]
         # Broadcast a single scale value to all adapters, or validate that
         # per-adapter scales match the number of adapter weight paths.
         if isinstance(lora_scale, list):

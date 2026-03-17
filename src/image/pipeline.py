@@ -74,9 +74,7 @@ class ImageGenerationPipeline:
         #   self._pipe = StableDiffusionPipeline.from_pretrained(
         #       self.model_id, torch_dtype=dtype
         #   ).to(device)
-        raise NotImplementedError(
-            "Stub: implement _load_pipeline() or install diffusers."
-        )
+        raise NotImplementedError("Stub: implement _load_pipeline() or install diffusers.")
 
     def _ensure_loaded(self) -> None:
         """Ensure the pipeline is loaded before inference."""

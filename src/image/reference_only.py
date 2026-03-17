@@ -103,9 +103,7 @@ class ReferenceOnlyPipeline(ImageGenerationPipeline):
             For older versions a custom attention processor must be implemented.
         """
         # TODO: Implement as described in the docstring above.
-        raise NotImplementedError(
-            "Stub: implement _load_pipeline() for reference-only sampling."
-        )
+        raise NotImplementedError("Stub: implement _load_pipeline() for reference-only sampling.")
 
     # ------------------------------------------------------------------
     # Public API
@@ -148,6 +146,4 @@ class ReferenceOnlyPipeline(ImageGenerationPipeline):
         # TODO: Call self._pipe with ref_image=reference_image,
         #       attention_auto_machine_weight, gn_auto_machine_weight,
         #       style_fidelity, reference_attn, reference_adain, etc.
-        raise NotImplementedError(
-            "Stub: implement generate() for reference-only sampling."
-        )
+        raise NotImplementedError("Stub: implement generate() for reference-only sampling.")

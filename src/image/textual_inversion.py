@@ -65,9 +65,7 @@ class TextualInversionPipeline(ImageGenerationPipeline):
     ) -> None:
         super().__init__(model_id=base_model_id, device=device, dtype=dtype)
         self.embedding_paths = (
-            embedding_paths
-            if isinstance(embedding_paths, list)
-            else [embedding_paths]
+            embedding_paths if isinstance(embedding_paths, list) else [embedding_paths]
         )
         self.tokens = tokens if isinstance(tokens, list) else [tokens]
 
@@ -100,9 +98,7 @@ class TextualInversionPipeline(ImageGenerationPipeline):
                 self._pipe.load_textual_inversion(str(path), token=token)
         """
         # TODO: Implement as described in the docstring above.
-        raise NotImplementedError(
-            "Stub: implement _load_pipeline() for Textual Inversion."
-        )
+        raise NotImplementedError("Stub: implement _load_pipeline() for Textual Inversion.")
 
     # ------------------------------------------------------------------
     # Public API
@@ -138,6 +134,4 @@ class TextualInversionPipeline(ImageGenerationPipeline):
         """
         self._ensure_loaded()
         # TODO: Build generator from seed, call self._pipe, return images[0].
-        raise NotImplementedError(
-            "Stub: implement generate() for Textual Inversion."
-        )
+        raise NotImplementedError("Stub: implement generate() for Textual Inversion.")
