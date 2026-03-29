@@ -177,14 +177,21 @@ uv pip install -r requirements.txt
 uv pip install -e ".[dev]"
 ```
 
-> **GPU / CUDA users:** install PyTorch with CUDA 12.8 support by adding the
-> `cuda` extra.  The `explicit = true` index flag ensures only `torch` and
-> `torchvision` are fetched from the PyTorch wheel index — all other packages
-> come from PyPI as normal.
+> **GPU / CUDA users:** install the `cuda` optional extra and then reinstall
+> `torch`/`torchvision` from the PyTorch wheel index for your CUDA version:
 >
 > ```bash
-> uv sync --extra cuda        # CUDA 12.8 torch + torchvision
-> uv sync --extra cuda --extra dev  # … plus dev tools
+> # 1. Install project + cuda extra (resolves torch/torchvision from PyPI)
+> uv sync --extra cuda
+>
+> # 2. Overwrite torch/torchvision with CUDA-enabled wheels
+> uv pip install torch torchvision \
+>     --extra-index-url https://download.pytorch.org/whl/cu128
+>
+> # Alternatively, include dev tools in one go (step 2 still required):
+> uv sync --extra cuda --extra dev
+> uv pip install torch torchvision \
+>     --extra-index-url https://download.pytorch.org/whl/cu128
 > ```
 
 ### Installation with pip (alternative)

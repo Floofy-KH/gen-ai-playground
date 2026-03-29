@@ -21,7 +21,6 @@ from PIL import Image
 
 from src.image.pipeline import ImageGenerationPipeline
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -365,9 +364,7 @@ class TestGenerate:
         pipe = ImageGenerationPipeline("fake/model", device="cpu")
 
         def _fake_ensure_loaded():
-            pipe._pipe = MagicMock(
-                return_value=MagicMock(images=[_make_fake_image()])
-            )
+            pipe._pipe = MagicMock(return_value=MagicMock(images=[_make_fake_image()]))
 
         pipe._ensure_loaded = MagicMock(side_effect=_fake_ensure_loaded)
         pipe.generate("a fox")
