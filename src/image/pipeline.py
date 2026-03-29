@@ -88,6 +88,12 @@ class ImageGenerationPipeline:
         ).to(device)
 
         # Enable memory-efficient attention when xformers is available
+        # Cast VAE to float32 for numerical stability with float16 pipelines
+        # (replaces the deprecated upcast_vae behaviour in SDXL)
+        if self.dtype == torch.float16:
+            self._pipe.vae.to(torch.float32)
+
+        # Enable memory-efficient attention when xformers is available
         try:
             self._pipe.enable_xformers_memory_efficient_attention()
         except (ImportError, AttributeError, ValueError):
