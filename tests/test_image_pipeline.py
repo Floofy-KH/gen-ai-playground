@@ -253,6 +253,42 @@ class TestLoadPipeline:
         call_kwargs = sdxl_cls.from_pretrained.call_args.kwargs
         assert call_kwargs.get("torch_dtype") is torch_mock.float16
 
+    def test_vae_upcast_when_explicit_float16(self):
+        """VAE should be cast to float32 when dtype=float16 is explicitly requested."""
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = False
+        diffusers_mock, _, pipe_instance = _make_diffusers_mock()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model", dtype=torch_mock.float16)
+            p._load_pipeline()
+
+        pipe_instance.vae.to.assert_called_once_with(torch_mock.float32)
+
+    def test_vae_upcast_when_auto_float16_on_cuda(self):
+        """VAE should be cast to float32 when dtype=None and device auto-selects CUDA/fp16."""
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = True
+        diffusers_mock, _, pipe_instance = _make_diffusers_mock()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model")
+            p._load_pipeline()
+
+        pipe_instance.vae.to.assert_called_once_with(torch_mock.float32)
+
+    def test_vae_not_upcast_on_cpu(self):
+        """VAE should NOT be cast to float32 when running on CPU (no float16 auto-select)."""
+        torch_mock = _make_torch_mock()
+        torch_mock.cuda.is_available.return_value = False
+        diffusers_mock, _, pipe_instance = _make_diffusers_mock()
+
+        with patch.dict(sys.modules, {"torch": torch_mock, "diffusers": diffusers_mock}):
+            p = ImageGenerationPipeline("fake/model")
+            p._load_pipeline()
+
+        pipe_instance.vae.to.assert_not_called()
+
     def test_xformers_error_does_not_propagate(self):
         """ImportError/AttributeError from xformers should be silently ignored."""
         torch_mock = _make_torch_mock()

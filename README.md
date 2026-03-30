@@ -168,30 +168,22 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 git clone https://github.com/Floofy-KH/gen-ai-playground.git
 cd gen-ai-playground
 
-# 2. Create a virtual environment and install all dependencies
-uv venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-uv pip install -r requirements.txt
+# 2. Create a virtual environment and install all dev dependencies (lockfile-driven)
+uv sync --extra dev
 
-# 3. (Optional) Install dev tools (pytest, ruff, black)
-uv pip install -e ".[dev]"
+# 3. Activate the virtual environment
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 ```
 
-> **GPU / CUDA users:** install the `cuda` optional extra and then reinstall
-> `torch`/`torchvision` from the PyTorch wheel index for your CUDA version:
+> **GPU / CUDA users:** install the `cuda` optional extra, then replace the PyPI
+> torch wheels with CUDA-enabled builds for your driver version:
 >
 > ```bash
-> # 1. Install project + cuda extra (resolves torch/torchvision from PyPI)
-> uv sync --extra cuda
+> uv sync --extra cuda --extra dev   # installs torch/torchvision from PyPI (lockfile)
 >
-> # 2. Overwrite torch/torchvision with CUDA-enabled wheels
+> # Replace with the CUDA-enabled wheels that match your driver:
 > uv pip install torch torchvision \
->     --extra-index-url https://download.pytorch.org/whl/cu128
->
-> # Alternatively, include dev tools in one go (step 2 still required):
-> uv sync --extra cuda --extra dev
-> uv pip install torch torchvision \
->     --extra-index-url https://download.pytorch.org/whl/cu128
+>     --index-url https://download.pytorch.org/whl/cu128   # adjust cu128 to your CUDA version
 > ```
 
 ### Installation with pip (alternative)

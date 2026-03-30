@@ -33,9 +33,11 @@ notebooks = [
 ]
 # GPU / CUDA build of PyTorch.
 # Usage:  uv sync --extra cuda
-# Note: this installs torch/torchvision from PyPI (CPU build by default).
-# For CUDA-enabled wheels, override the index after syncing:
-#   uv pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu128
+# Note: PyPI torch wheels may already bundle CUDA libraries on Linux (pulling in
+# nvidia-*/cuda-* deps).  They are not guaranteed to be a small CPU-only install.
+# To force a true CPU-only build or a specific CUDA version, override with:
+#   uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#   uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 cuda = [
     "torch>=2.0.0",
     "torchvision>=0.15.0",
