@@ -63,18 +63,40 @@ class ImageGenerationPipeline:
         Called automatically on the first call to :meth:`generate`.
         Override this method in subclasses to load different pipeline types.
         """
-        # TODO: Import and instantiate the appropriate diffusers pipeline.
-        # Example:
-        #
-        #   import torch
-        #   from diffusers import StableDiffusionPipeline
-        #
-        #   device = self.device or ("cuda" if torch.cuda.is_available() else "cpu")
-        #   dtype = self.dtype or (torch.float16 if device == "cuda" else torch.float32)
-        #   self._pipe = StableDiffusionPipeline.from_pretrained(
-        #       self.model_id, torch_dtype=dtype
-        #   ).to(device)
-        raise NotImplementedError("Stub: implement _load_pipeline() or install diffusers.")
+        import torch
+        from diffusers import StableDiffusionXLPipeline
+
+        if self.device is not None and self.device.startswith("cuda"):
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    f"Device '{self.device}' was requested but CUDA is not available on this machine. "
+                    "Pass device='cpu' or omit the device argument to use CPU automatically."
+                )
+            device = self.device
+        else:
+            device = self.device or ("cuda" if torch.cuda.is_available() else "cpu")
+
+        kwargs = {}
+        if self.dtype is not None:
+            kwargs["torch_dtype"] = self.dtype
+        elif device.startswith("cuda"):
+            kwargs["torch_dtype"] = torch.float16
+
+        self._pipe = StableDiffusionXLPipeline.from_pretrained(
+            self.model_id,
+            **kwargs,
+        ).to(device)
+
+        # Enable memory-efficient attention when xformers is available
+        try:
+            self._pipe.enable_xformers_memory_efficient_attention()
+        except (ImportError, AttributeError, ValueError):
+            pass
+
+        # Persist resolved device and dtype so subclasses and generate() can
+        # reference them without re-computing the defaults.
+        self.device = device
+        self.dtype = kwargs.get("torch_dtype")
 
     def _ensure_loaded(self) -> None:
         """Ensure the pipeline is loaded before inference."""
@@ -114,9 +136,23 @@ class ImageGenerationPipeline:
             A ``PIL.Image.Image`` containing the generated output.
         """
         self._ensure_loaded()
-        # TODO: Build a torch.Generator with `seed` if provided, then call
-        #       self._pipe(...) with the appropriate keyword arguments.
-        raise NotImplementedError("Stub: implement generate().")
+
+        generator = None
+        if seed is not None:
+            import torch
+
+            generator = torch.Generator(device=self.device).manual_seed(seed)
+
+        output = self._pipe(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            generator=generator,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            width=width,
+            height=height,
+        )
+        return output.images[0]
 
     def generate_batch(
         self,

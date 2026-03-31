@@ -8,9 +8,9 @@ requires-python = ">=3.10"
 # ---------------------------------------------------------------------------
 # Runtime dependencies
 # ---------------------------------------------------------------------------
-# Heavy ML deps (torch, diffusers, etc.) are pinned in requirements.txt and
-# installed via `uv pip install -r requirements.txt` to keep this file light.
-# Pure-project utilities have no additional runtime deps beyond those listed.
+# Runtime dependencies are split across optional extras (see below) to keep CI
+# fast: `uv sync --extra dev` installs only lightweight test/lint tools.
+# Use `uv sync --extra dev --extra ml` for the full development setup.
 dependencies = []
 
 # ---------------------------------------------------------------------------
@@ -30,6 +30,36 @@ notebooks = [
     "jupyter>=1.0.0",
     "jupyterlab>=4.0.0",
     "ipywidgets>=8.0.0",
+]
+# Runtime ML dependencies (Hugging Face ecosystem + image/data utilities).
+# Does NOT include torch/torchvision — add the `cuda` extra to pull those in,
+# then optionally replace them with CUDA-enabled wheels (see `cuda` extra below).
+# Usage:  uv sync --extra dev --extra ml
+ml = [
+    "diffusers>=0.27.0",
+    "transformers>=4.38.0",
+    "huggingface_hub>=0.21.0",
+    "accelerate>=0.27.0",
+    "peft>=0.9.0",
+    "datasets>=2.17.0",
+    "opencv-python>=4.9.0",
+    "imageio>=2.34.0",
+    "scipy>=1.12.0",
+    "tqdm>=4.66.0",
+    "pyyaml>=6.0.1",
+    "omegaconf>=2.3.0",
+    "einops>=0.7.0",
+]
+# GPU / CUDA build of PyTorch.
+# Usage:  uv sync --extra cuda
+# Note: PyPI torch wheels may already bundle CUDA libraries on Linux (pulling in
+# nvidia-*/cuda-* deps).  They are not guaranteed to be a small CPU-only install.
+# To force a true CPU-only build or a specific CUDA version, override with:
+#   uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#   uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+cuda = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
 ]
 
 # ---------------------------------------------------------------------------

@@ -168,14 +168,21 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 git clone https://github.com/Floofy-KH/gen-ai-playground.git
 cd gen-ai-playground
 
-# 2. Create a virtual environment and install all dependencies
-uv venv .venv
+# 2. Install all dependencies and activate the environment
+uv sync --extra dev --extra ml
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-uv pip install -r requirements.txt
-
-# 3. (Optional) Install dev tools (pytest, ruff, black)
-uv pip install -e ".[dev]"
 ```
+
+> **GPU / CUDA users:** add the `cuda` extra so `torch`/`torchvision` are included,
+> then replace them with CUDA-enabled wheels for your driver version:
+>
+> ```bash
+> uv sync --extra dev --extra ml --extra cuda
+>
+> # Replace with the CUDA-enabled wheels that match your driver:
+> uv pip install torch torchvision \
+>     --index-url https://download.pytorch.org/whl/cu128   # adjust cu128 to your CUDA version
+> ```
 
 ### Installation with pip (alternative)
 
