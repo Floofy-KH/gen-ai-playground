@@ -87,13 +87,6 @@ class ImageGenerationPipeline:
             **kwargs,
         ).to(device)
 
-        # Cast VAE to float32 for numerical stability with float16 pipelines
-        # (replaces the deprecated upcast_vae behaviour in SDXL).
-        # Use kwargs['torch_dtype'] rather than self.dtype because self.dtype is
-        # still None here when the dtype was auto-selected (it is persisted below).
-        if kwargs.get("torch_dtype") == torch.float16:
-            self._pipe.vae.to(torch.float32)
-
         # Enable memory-efficient attention when xformers is available
         try:
             self._pipe.enable_xformers_memory_efficient_attention()
