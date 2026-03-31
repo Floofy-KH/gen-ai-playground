@@ -16,15 +16,15 @@ All pipeline classes currently raise `NotImplementedError`. Each has a detailed
   `self.model_id`, move to device, enable memory-efficient attention.
 - [x] **`pipeline.py`** — Implement `ImageGenerationPipeline.generate()`:
   build a `torch.Generator` from `seed`, call `self._pipe`, return `PIL.Image`.
-- [ ] **`lora.py`** — Implement `LoRAPipeline._load_pipeline()`: load base
+- [x] **`lora.py`** — Implement `LoRAPipeline._load_pipeline()`: load base
   pipeline, then load each LoRA weight via `load_lora_weights()` and fuse.
-- [ ] **`lora.py`** — Implement `LoRAPipeline.generate()`: pass
+- [x] **`lora.py`** — Implement `LoRAPipeline.generate()`: pass
   `cross_attention_kwargs={"scale": lora_scale}` to the pipeline call.
-- [ ] **`lora.py`** — Implement `LoRAPipeline.unload_lora()`: call
+- [x] **`lora.py`** — Implement `LoRAPipeline.unload_lora()`: call
   `self._pipe.unload_lora_weights()`.
-- [ ] **`dreambooth.py`** — Implement `DreamBoothPipeline._load_pipeline()`:
+- [x] **`dreambooth.py`** — Implement `DreamBoothPipeline._load_pipeline()`:
   load the DreamBooth fine-tuned checkpoint from `self.model_id`.
-- [ ] **`dreambooth.py`** — Implement `DreamBoothPipeline.generate()`:
+- [x] **`dreambooth.py`** — Implement `DreamBoothPipeline.generate()`:
   prepend `subject_token` to the prompt (already handled by `_inject_subject_token`),
   build generator, call `self._pipe`, return image.
 - [ ] **`ip_adapter.py`** — Implement `IPAdapterPipeline._load_pipeline()`:
@@ -90,15 +90,15 @@ All training loops raise `NotImplementedError`. Each script includes a full
 
 ## Latent utilities (`src/utils/latent_utils.py`)
 
-- [ ] Implement `encode_image_to_latent()`: convert `PIL.Image` → tensor,
+- [x] Implement `encode_image_to_latent()`: convert `PIL.Image` → tensor,
   encode through `vae.encode()`, sample from the posterior distribution,
   scale by `vae.config.scaling_factor`.
-- [ ] Implement `decode_latent_to_image()`: unscale latent, run through
+- [x] Implement `decode_latent_to_image()`: unscale latent, run through
   `vae.decode()`, convert output tensor to `PIL.Image`.
-- [ ] Implement `_lerp()`: linear interpolation between two tensors.
-- [ ] Implement `_slerp()`: spherical linear interpolation (SLERP) between
+- [x] Implement `_lerp()`: linear interpolation between two tensors.
+- [x] Implement `_slerp()`: spherical linear interpolation (SLERP) between
   two tensors; handle the collinear edge case gracefully.
-- [ ] Implement `add_noise_to_latent()`: create a `torch.Generator` from
+- [x] Implement `add_noise_to_latent()`: create a `torch.Generator` from
   `seed` if provided, sample Gaussian noise scaled by `noise_strength`, add
   to the input latent.
 
@@ -117,7 +117,7 @@ All training loops raise `NotImplementedError`. Each script includes a full
 
 ## Testing
 
-- [ ] Add tests for `latent_utils` once the pure-Python helpers (`_lerp`,
+- [x] Add tests for `latent_utils` once the pure-Python helpers (`_lerp`,
   `_slerp`) are implemented (no GPU required for those two).
 - [ ] Add integration / smoke tests for pipeline classes using a tiny
   test-only checkpoint once the stubs are filled in.

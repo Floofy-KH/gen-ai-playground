@@ -105,8 +105,15 @@ class LoRAPipeline(ImageGenerationPipeline):
             # faster inference:
             # self._pipe.fuse_lora(lora_scale=self.lora_scale[0])
         """
-        # TODO: Implement as described in the docstring above.
-        raise NotImplementedError("Stub: implement _load_pipeline() for LoRA.")
+        super()._load_pipeline()
+
+        for i, weights in enumerate(self.lora_weights):
+            adapter_name = f"adapter_{i}"
+            self._pipe.load_lora_weights(weights, adapter_name=adapter_name)
+
+        if len(self.lora_weights) > 1:
+            adapter_names = [f"adapter_{i}" for i in range(len(self.lora_weights))]
+            self._pipe.set_adapters(adapter_names, adapter_weights=self.lora_scale)
 
     # ------------------------------------------------------------------
     # Public API
@@ -141,9 +148,28 @@ class LoRAPipeline(ImageGenerationPipeline):
             Generated ``PIL.Image.Image``.
         """
         self._ensure_loaded()
-        # TODO: Build generator, call self._pipe with cross_attention_kwargs,
-        #       return result.images[0].
-        raise NotImplementedError("Stub: implement generate() for LoRA.")
+
+        generator = None
+        if seed is not None:
+            import torch
+
+            generator = torch.Generator(device=self.device).manual_seed(seed)
+
+        ca_kwargs = cross_attention_kwargs
+        if ca_kwargs is None:
+            ca_kwargs = {"scale": self.lora_scale[0]}
+
+        output = self._pipe(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            cross_attention_kwargs=ca_kwargs,
+            generator=generator,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            width=width,
+            height=height,
+        )
+        return output.images[0]
 
     def unload_lora(self) -> None:
         """Remove all loaded LoRA adapters, restoring the original base model.
@@ -152,5 +178,4 @@ class LoRAPipeline(ImageGenerationPipeline):
         re-instantiating the full pipeline.
         """
         if self._pipe is not None:
-            # TODO: Call self._pipe.unload_lora_weights()
-            raise NotImplementedError("Stub: implement unload_lora().")
+            self._pipe.unload_lora_weights()

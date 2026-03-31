@@ -82,8 +82,7 @@ class DreamBoothPipeline(ImageGenerationPipeline):
                 self.model_id, torch_dtype=dtype
             ).to(device)
         """
-        # TODO: Implement as described in the docstring above.
-        raise NotImplementedError("Stub: implement _load_pipeline() for DreamBooth.")
+        super()._load_pipeline()
 
     def _inject_subject_token(self, prompt: str) -> str:
         """Ensure the subject token appears in the prompt as a distinct token.
@@ -147,5 +146,20 @@ class DreamBoothPipeline(ImageGenerationPipeline):
         self._ensure_loaded()
         if inject_subject_token:
             prompt = self._inject_subject_token(prompt)
-        # TODO: Build generator from seed, call self._pipe, return images[0].
-        raise NotImplementedError("Stub: implement generate() for DreamBooth.")
+
+        generator = None
+        if seed is not None:
+            import torch
+
+            generator = torch.Generator(device=self.device).manual_seed(seed)
+
+        output = self._pipe(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            generator=generator,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            width=width,
+            height=height,
+        )
+        return output.images[0]

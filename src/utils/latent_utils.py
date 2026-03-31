@@ -56,24 +56,27 @@ def encode_image_to_latent(
                                              subfolder="vae")
         latent = encode_image_to_latent(my_image, vae)
     """
-    # TODO: Convert image to tensor, encode through vae.encode(), sample from
-    #       the latent distribution, scale by vae.config.scaling_factor.
-    #
-    # Implementation outline:
-    #   import torch
-    #   from torchvision import transforms
-    #
-    #   transform = transforms.Compose([
-    #       transforms.ToTensor(),
-    #       transforms.Normalize([0.5], [0.5]),
-    #   ])
-    #   img_tensor = transform(image.convert("RGB")).unsqueeze(0).to(device, dtype)
-    #
-    #   with torch.no_grad():
-    #       latent_dist = vae.encode(img_tensor).latent_dist
-    #       latent = latent_dist.sample() * vae.config.scaling_factor
-    #   return latent
-    raise NotImplementedError("Stub: implement encode_image_to_latent().")
+    import torch
+    from torchvision import transforms
+
+    transform = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize([0.5], [0.5]),
+        ]
+    )
+    img_tensor = transform(image.convert("RGB")).unsqueeze(0)
+    if device is not None and dtype is not None:
+        img_tensor = img_tensor.to(device, dtype)
+    elif device is not None:
+        img_tensor = img_tensor.to(device=device)
+    elif dtype is not None:
+        img_tensor = img_tensor.to(dtype=dtype)
+
+    with torch.no_grad():
+        latent_dist = vae.encode(img_tensor).latent_dist
+        latent = latent_dist.sample() * vae.config.scaling_factor
+    return latent
 
 
 def decode_latent_to_image(
@@ -96,19 +99,14 @@ def decode_latent_to_image(
         image = decode_latent_to_image(latent / vae.config.scaling_factor, vae)
         image.save("decoded.png")
     """
-    # TODO: Run latent through vae.decode(), convert output tensor to PIL Image.
-    #
-    # Implementation outline:
-    #   import torch
-    #   from PIL import Image
-    #   import numpy as np
-    #
-    #   with torch.no_grad():
-    #       decoded = vae.decode(latent).sample  # (1, 3, H, W) in [-1, 1]
-    #   decoded = (decoded / 2 + 0.5).clamp(0, 1)
-    #   decoded = decoded.squeeze(0).permute(1, 2, 0).cpu().numpy()
-    #   return Image.fromarray((decoded * 255).astype(np.uint8))
-    raise NotImplementedError("Stub: implement decode_latent_to_image().")
+    import numpy as np
+    import torch
+
+    with torch.no_grad():
+        decoded = vae.decode(latent).sample  # (1, 3, H, W) in [-1, 1]
+    decoded = (decoded / 2 + 0.5).clamp(0, 1)
+    decoded = decoded.squeeze(0).permute(1, 2, 0).cpu().numpy()
+    return Image.fromarray((decoded * 255).astype(np.uint8))
 
 
 def interpolate_latents(
@@ -149,8 +147,7 @@ def interpolate_latents(
 
 def _lerp(a, b, alpha: float):
     """Linear interpolation: ``a * (1 - alpha) + b * alpha``."""
-    # TODO: Implement using torch arithmetic.
-    raise NotImplementedError("Stub: implement _lerp().")
+    return a * (1.0 - alpha) + b * alpha
 
 
 def _slerp(a, b, alpha: float, eps: float = 1e-6):
@@ -169,16 +166,17 @@ def _slerp(a, b, alpha: float, eps: float = 1e-6):
     Returns:
         Interpolated tensor.
     """
-    # TODO: Implement SLERP:
-    #   import torch
-    #   a_norm = a / (torch.norm(a, dim=-1, keepdim=True) + eps)
-    #   b_norm = b / (torch.norm(b, dim=-1, keepdim=True) + eps)
-    #   dot = (a_norm * b_norm).sum(dim=-1, keepdim=True).clamp(-1, 1)
-    #   theta = torch.acos(dot) * alpha
-    #   relative = b - dot * a_norm
-    #   relative = relative / (torch.norm(relative, dim=-1, keepdim=True) + eps)
-    #   return torch.cos(theta) * a + torch.sin(theta) * relative
-    raise NotImplementedError("Stub: implement _slerp().")
+    import torch
+
+    a_norm = a / (torch.norm(a, dim=-1, keepdim=True) + eps)
+    b_norm = b / (torch.norm(b, dim=-1, keepdim=True) + eps)
+    dot = (a_norm * b_norm).sum(dim=-1, keepdim=True).clamp(-1.0, 1.0)
+    theta = torch.acos(dot) * alpha
+    relative = b_norm - dot * a_norm
+    relative = relative / (torch.norm(relative, dim=-1, keepdim=True) + eps)
+    return (torch.cos(theta) * a_norm + torch.sin(theta) * relative) * torch.norm(
+        a, dim=-1, keepdim=True
+    )
 
 
 def add_noise_to_latent(
@@ -200,6 +198,10 @@ def add_noise_to_latent(
     Returns:
         Noised latent tensor with the same shape as input.
     """
-    # TODO: Create a Generator from `seed` if provided, sample Gaussian noise,
-    #       add to latent: latent + noise_level * torch.randn_like(latent, generator=g)
-    raise NotImplementedError("Stub: implement add_noise_to_latent().")
+    import torch
+
+    generator = None
+    if seed is not None:
+        generator = torch.Generator(device=latent.device).manual_seed(seed)
+    noise = torch.randn_like(latent, generator=generator)
+    return latent + noise_level * noise
